@@ -1,0 +1,180 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - mood_great
+  - mood_unhappy
+  - bot_challenge
+  - ask_product_availability
+  - ask_price
+  - ask_size
+  - ask_color
+  - ask_gender
+  - ask_category
+  - ask_type
+
+responses:
+  utter_greet:
+    - text: "Hey! How are you?"
+
+  utter_cheer_up:
+    - text: "Here is something to cheer you up:"
+      image: "https://i.imgur.com/nGF1K8f.jpg"
+
+  utter_did_that_help:
+    - text: "Did that help you?"
+
+  utter_happy:
+    - text: "Great, carry on!"
+
+  utter_goodbye:
+    - text: "Bye"
+
+  utter_iamabot:
+    - text: "I am a bot, powered by Rasa."
+
+  utter_ask_product_availability:
+    - text: "Sto controllando la disponibilità per il prodotto richiesto."
+
+  utter_ask_price:
+    - text: "Sto cercando il prezzo del prodotto richiesto."
+
+  utter_ask_size:
+    - text: "Sto cercando la taglia per il prodotto richiesto."
+
+  utter_ask_color:
+    - text: "Sto verificando il colore del prodotto richiesto."
+
+  utter_ask_gender:
+    - text: "Sto verificando la disponibilità del prodotto per il genere richiesto."
+
+  utter_ask_category:
+    - text: "Sto cercando la categoria del prodotto richiesto."
+
+  utter_ask_type:
+    - text: "Sto cercando il tipo di prodotto richiesto."
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
+
+slots:
+  product_name:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: product_name
+
+  price:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: price
+
+  size:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: size
+
+  color:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: color
+
+  gender:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: gender
+
+  category:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: category
+
+  product_type:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: product_type
+
+entities:
+  - product_name
+  - price
+  - size
+  - color
+  - gender
+  - category
+  - product_type
+
+actions:
+  - action_check_product_availability
+  - action_check_price  # Questa dovrebbe essere 'action_check_price', che è corretta
+  - action_check_size
+  - action_check_color
+  - action_check_gender
+  - action_check_category
+  - action_check_type
+
+
+
+rules:
+  - rule: Say goodbye anytime the user says goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: Say 'I am a bot' anytime the user challenges
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
+
+  - rule: Handle product availability check
+    steps:
+      - intent: ask_product_availability
+      - action: action_check_product_availability
+
+  - rule: Handle price check
+    steps:
+      - intent: ask_price
+      - action: action_check_product_price  # Corretto il nome dell'azione qui
+
+  - rule: Handle size check
+    steps:
+      - intent: ask_size
+      - action: action_check_size
+
+  - rule: Handle color check
+    steps:
+      - intent: ask_color
+      - action: action_check_color
+
+  - rule: Handle gender check
+    steps:
+      - intent: ask_gender
+      - action: action_check_gender
+
+  - rule: Handle category check
+    steps:
+      - intent: ask_category
+      - action: action_check_category
+
+  - rule: Handle type check
+    steps:
+      - intent: ask_type
+      - action: action_check_type
+
+  - rule: Default handling in case of ambiguity
+    steps:
+      - intent: ask_product_availability
+      - action: action_check_product_availability
+
+
+
+
