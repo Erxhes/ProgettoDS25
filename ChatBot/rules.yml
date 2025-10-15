@@ -1,0 +1,67 @@
+version: "3.1"
+rules:
+  - rule: Rispondere a \start
+    steps:
+      - intent: start_bot
+      - action: utter_start_bot
+
+  - rule: Rispondere ai saluti
+    steps:
+      - intent: greet
+      - action: utter_greet
+  - rule: Rispondi alla richiesta della lista prodotti
+    steps:
+      - intent: chiedi_lista_prodotti
+      - action: utter_lista_prodotti
+  - rule: Say goodbye anytime the user says goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: Say 'I am a bot' anytime the user challenges
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
+
+  - rule: Handle product availability check
+    steps:
+      - intent: ask_product_availability
+      - action: action_check_product_availability
+
+  - rule: Handle price check
+    steps:
+      - intent: ask_price
+      - action: action_check_price
+
+  - rule: Handle size check
+    steps:
+    - intent: ask_size
+    - action: action_check_size_availability
+
+  - rule: Handle color check
+    steps:
+      - intent: ask_color
+      - action: action_check_color
+
+  - rule: Handle gender check
+    steps:
+      - intent: ask_gender
+      - action: action_check_gender
+
+  - rule: Handle category check
+    steps:
+      - intent: ask_category
+      - action: action_check_category
+
+  - rule: Handle type check
+    steps:
+      - intent: ask_type
+      - action: action_check_type
+
+  - rule: Default handling in case of no intent matched
+    steps:
+      - action: utter_default
+
+
+
+

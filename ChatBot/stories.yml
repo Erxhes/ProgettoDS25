@@ -1,0 +1,104 @@
+version: "3.1"
+
+stories:
+  - story: happy path
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: mood_great
+      - action: utter_happy
+
+  - story: sad path 1
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: mood_unhappy
+      - action: utter_cheer_up
+      - action: utter_did_that_help
+      - intent: affirm
+      - action: utter_happy
+
+  - story: sad path 2
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: mood_unhappy
+      - action: utter_cheer_up
+      - action: utter_did_that_help
+      - intent: deny
+      - action: utter_goodbye
+
+  - story: check_product_availability
+    steps:
+      - intent: ask_product_availability
+        entities:
+          - product_name: "Milan Home Authentic 2024/25"
+      - action: action_check_product_availability
+
+  - story: check_product_availability_altra_maglia
+    steps:
+      - intent: ask_product_availability
+        entities:
+          - product_name: "Milan Home Away Authentic 2024/25"
+      - action: action_check_product_availability
+
+  - story: check_product_availability_calzettoni
+    steps:
+      - intent: ask_product_availability
+        entities:
+          - product_name: "Milan Gara Home 2024/25"
+      - action: action_check_product_availability
+
+  - story: check_product_availability_riassunto
+    steps:
+      - intent: ask_product_availability
+        entities:
+          - product_name: "Milan Training 2024/25 Con Zip E Cappuccio"
+      - action: action_check_product_availability
+
+  - story: ask_product_availability_no_result
+    steps:
+      - intent: ask_product_availability
+        entities:
+          - product_name: "Nome prodotto sconosciuto"
+      - action: action_check_product_availability
+
+  - story: check_price
+    steps:
+      - intent: ask_price
+        entities:
+          - product_name: "Milan Home 2024/25"
+      - action: action_check_price
+
+  - story: check_price_altra_maglia
+    steps:
+      - intent: ask_price
+        entities:
+          - product_name: "Milan Home Authentic 2024/25"
+      - action: action_check_price
+
+  - story: check_price_calzettoni
+    steps:
+      - intent: ask_price
+        entities:
+          - product_name: "Milan Gara Home 2024/25"
+      - action: action_check_price
+
+  - story: check_price_riassunto
+    steps:
+      - intent: ask_price
+        entities:
+          - product_name: "Milan Training 2024/25"
+      - action: action_check_price
+
+  - story: ask_price_no_result
+    steps:
+      - intent: ask_price
+        entities:
+          - product_name: "Nome prodotto sconosciuto"
+      - action: action_check_price
+
+  - story: richiesta categorie store
+    steps:
+      - intent: categorie_nello_store
+      - action: utter_descrizione_categorie

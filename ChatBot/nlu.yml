@@ -1,0 +1,188 @@
+version: "3.1"
+nlu:
+  - intent: start_bot
+    examples: |
+      - \start
+      - /start
+      - Voglio iniziare
+      - Inizia
+
+  - intent: greet
+    examples: |
+      - ciao
+      - buongiorno
+      - salve
+      - ehi
+      - ciao bot
+      - hey
+      - Buongiorno
+      - Ciao
+      - Salve
+      - hey
+      - hello
+      - hi
+      - hello there
+      - good morning
+      - good evening
+      - moin
+      - hey there
+      - let's go
+      - hey dude
+      - goodmorning
+      - goodevening
+      - good afternoon
+
+  - intent: goodbye
+    examples: |
+      - Ciao!
+      - Arrivederci
+      - Buona Giornata
+      - cu
+      - good by
+      - see you later
+      - good night
+      - bye
+      - goodbye
+      - have a nice day
+      - see you around
+      - bye bye
+      - see you later
+
+  - intent: affirm
+    examples: |
+      - yes
+      - y
+      - indeed
+      - of course
+      - that sounds good
+      - correct
+
+  - intent: deny
+    examples: |
+      - no
+      - n
+      - never
+      - I don't think so
+      - don't like that
+      - no way
+      - not really
+
+  - intent: mood_great
+    examples: |
+      - perfect
+      - great
+      - amazing
+      - feeling like a king
+      - wonderful
+      - I am feeling very good
+      - I am great
+      - I am amazing
+      - I am going to save the world
+      - super stoked
+      - extremely good
+      - so so perfect
+      - so good
+      - so perfect
+
+  - intent: mood_unhappy
+    examples: |
+      - my day was horrible
+      - I am sad
+      - I don't feel very well
+      - I am disappointed
+      - super sad
+      - I'm so sad
+      - sad
+      - very sad
+      - unhappy
+      - not good
+      - not very good
+      - extremly sad
+      - so saad
+      - so sad
+
+  - intent: bot_challenge
+    examples: |
+      - are you a bot?
+      - are you a human?
+      - am I talking to a bot?
+      - am I talking to a human?
+
+  - intent: chiedi_lista_prodotti
+    examples: |
+      - Quali prodotti avete?
+      - Che tipo di prodotti vendete?
+      - Cosa posso comprare nello store?
+      - Elencami i prodotti disponibili
+
+  - intent: ask_product_availability
+    examples: |
+      - È disponibile la maglia [Milan Home Authentic 2024/25](product_name)?
+      - Ci sta il pallone [Milan Storico 125° Anniversario](product_name)?
+      - Ci sono i calzettoni [Milan Gara Home Portiere 2024/25](product_name)?
+      - Hai la Giacca [Milan Pre Match 2024/25 Con Zip E Cappuccio](product_name)?
+      - Posso acquistare il pallone [Milan Essential](product_name)?
+      - Avete la maglia [Milan Home Portiere Away 2024/25](product_name) da bambino?
+      - I pantaloni [Training Kids' Pants 2024/25](product_name) sono disponibili per l'acquisto?
+      - È possibile acquistare i pantaloncini [Milan Training 2024/25](product_name)?
+      - Mi puoi dire se la giacca [Milan Training 2024/25 Con Zip E Tasche](product_name) è disponibile?
+      - È ancora possibile acquistare i calzettoni [Milan Gara Home 2024/25](product_name)?
+      - Avete in stock la maglia [Milan Home Away 2024/25](product_name)?
+
+  - intent: ask_price
+    examples: |
+      - Quanto costa la maglia Milan Home 2024/25?
+      - Qual è il prezzo della maglia Milan Home Authentic 2024/25?
+      - Quanto devo pagare per la maglia [Milan Home Authentic 2024/25](product_name)?
+      - Mi dici il prezzo della [maglia Milan Home 2024/25](product_name)?
+      - Che prezzo ha la maglia [Milan Home 2024/25](product_name)?
+      - Quanto costa la [maglia Milan Home 2024/25](product_name)?
+      - Il prezzo della maglia [Milan Home 2024/25](product_name) è?
+      - A quanto vendete la maglia [Milan Home 2024/25](product_name)?
+      - Potresti dirmi il prezzo della maglia [Milan Home 2024/25](product_name)?
+      - Qual è il costo della [maglia Milan Home 2024/25](product_name)?
+      - Quanto costa questo prodotto [Milan Home 2024/25](product_name)?
+      - Che prezzo ha la maglia [Milan Home 2024/25](product_name)?
+      - A quanto vendete il [pallone Milan Storico 125° Anniversario](product_name)?
+      - Il prezzo del [kit da gara Milan Home 2024/25](product_name) quanto è?
+      - Quanto mi costa la giacca [Milan Pre Match 2024/25](product_name)?
+      - Quanto è il prezzo del [Milan Training 2024/25](product_name)?
+      - Quanto costa il [pallone Milan Essential](product_name)?
+      - Quanto devo pagare per i [calzettoni Milan Gara Home 2024/25](product_name)?
+      - Mi dici quanto costa la [maglia Milan Home Portiere Away 2024/25](product_name)?
+
+  - intent: ask_size
+    examples: |
+      - Quali taglie avete per la maglia [Milan Home 2024/25](product_name)?
+      - Avete la taglia [M](size) per la maglia [Milan Home Authentic 2024/25](product_name)?
+      - Posso avere la maglia [Milan Away 2024/25](product_name) con la taglia [L](size)?
+      - Quali sono le taglie disponibili per i pantaloni [Milan Training 2024/25](product_name)?
+      - Ci sono taglie disponibili per la giacca [Milan Pre Match 2024/25](product_name)?
+      - La maglia [Milan Home 2024/25](product_name) è disponibile in taglia [S](size)?
+      - Mi puoi dire se avete la taglia [XL](size) per il [kit Milan 2024/25](product_name)?
+      - Quali misure avete per i pantaloncini [Milan Training 2024/25](product_name)?
+      - Avete taglie per bambini per la maglia [Milan Home 2024/25](product_name)?
+
+  - intent: ask_color
+    examples: |
+      - Di che colore è la maglia Milan Home 2024/25?
+      - La maglia Milan Home Authentic 2024/25 è disponibile in rosso e nero?
+
+  - intent: ask_gender
+    examples: |
+      - Avete la maglia Milan Home 2024/25 per donne?
+      - La maglia Milan Home Authentic 2024/25 è disponibile per uomini?
+
+  - intent: ask_category
+    examples: |
+      - Quale categoria è la maglia Milan Home 2024/25?
+      - La maglia Milan Home Authentic 2024/25 è un kit da gara?
+
+  - intent: ask_type
+    examples: |
+      - Che tipo di maglia è la Milan Home 2024/25?
+      - La maglia Milan Home Authentic 2024/25 è una maglia ufficiale?
+
+entities:
+  - size
+  - product_name
