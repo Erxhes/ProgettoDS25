@@ -51,7 +51,7 @@ Implementazione e fine-tuning di un modello di **Deep Learning** basato su archi
 
 ---
 
-## 3. 🕸️ Social Network Analysis (SNA) su Grafo TV Show
+## 3. 🕸️ Social Network Analysis (SNA) su TV Show
 
 ### 📌 Descrizione
 Studio delle proprietà topologiche e strutturali di una rete complessa di relazioni (*TV Show Edges dataset*), applicando le principali metriche della **Network Science** per identificare nodi centrali, comunità e sottostrutture rilevanti.
