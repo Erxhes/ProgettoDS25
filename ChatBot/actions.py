@@ -1,178 +1,346 @@
+import os
 import re
+from thefuzz import process, fuzz
+import pandas as pd
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-import pandas as pd
-import asyncio
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from rasa_sdk.events import SlotSet
 
-class ActionCheckProductAvailability(Action):
+# ──────────────────────────────────────────────
+# Caricamento e pulizia del dataset
+# ──────────────────────────────────────────────
+CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "AC_Milan_Store_Products.csv")
+
+def load_data() -> pd.DataFrame:
+    df = pd.read_csv(CSV_PATH, encoding="utf-8-sig", sep=";")
+    df["Nome"]          = (df["Nome"]
+                          .str.strip()
+                          .str.replace(r"  +", " ", regex=True)   # doppi spazi → singolo
+                          .str.replace("\\\\", "/", regex=False))  # backslash → slash
+    df["Disponibilità"] = df["Disponibilità"].str.strip().str.upper().fillna("NO")
+    df["Sesso"]         = df["Sesso"].str.strip().fillna("Unisex")
+    df["Taglie"]      = (df["Taglie"]
+                          .str.strip()
+                          .str.replace(r"\s*cm\s*", "cm", regex=True)  # normalizza "68-70 cm" → "68-70cm"
+                          .fillna(""))
+    df["Colore"]        = df["Colore"].str.strip().fillna("")
+    df["Categoria"]     = df["Categoria"].str.strip().fillna("")
+    df["Tipologia"]     = df["Tipologia"].str.strip().fillna("")
+    return df
+
+DF = load_data()
+PRODUCT_NAMES = DF["Nome"].dropna().unique().tolist()
+
+
+def find_product(query: str) -> str | None:
+    if not query:
+        return None
+    query_lower = query.strip().lower()
+    # 1) Match esatto
+    for name in PRODUCT_NAMES:
+        if name.lower() == query_lower:
+            return name
+    # 2) Match parziale (query contenuta nel nome o viceversa)
+    for name in PRODUCT_NAMES:
+        if query_lower in name.lower() or name.lower() in query_lower:
+            return name
+    # 3) Fuzzy matching con thefuzz (coerente con il PDF)
+    best_match, score = process.extractOne(
+        query_lower,
+        [n.lower() for n in PRODUCT_NAMES],
+        scorer=fuzz.WRatio
+    )
+    if score >= 85:
+        idx = [n.lower() for n in PRODUCT_NAMES].index(best_match)
+        return PRODUCT_NAMES[idx]
+    return None
+
+
+def get_product_row(name: str) -> pd.DataFrame:
+    return DF[DF["Nome"].str.lower() == name.lower()]
+
+
+def _suggest_after(action_name: str) -> str:
+    """Restituisce un messaggio di suggerimento in base all'azione appena eseguita."""
+    if action_name == "availability":
+        return "Ti dico anche il prezzo o le taglie? Scrivi 'prezzo' o 'taglie'."
+    elif action_name == "price":
+        return "Vuoi conoscere le taglie? Scrivi 'taglie'."
+    elif action_name == "sizes":
+        return "Posso dirti anche il prezzo. Scrivi 'prezzo'."
+    elif action_name == "color":
+        return "Posso aiutarti con disponibilità, prezzo o taglie."
+    return None  # P9: nessun messaggio se non c'è suggerimento
+
+
+def _dispatch_suggestion(dispatcher: CollectingDispatcher, action_name: str) -> None:
+    """Invia il suggerimento solo se non vuoto (P9)."""
+    suggestion = _suggest_after(action_name)
+    if suggestion:
+        dispatcher.utter_message(text=suggestion)
+
+
+# ──────────────────────────────────────────────
+# ACTION: Informazioni sullo store
+# ──────────────────────────────────────────────
+class ActionStoreInfo(Action):
     def name(self) -> Text:
-        return "action_check_product_availability"
+        return "action_store_info"
 
-    async def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        product_name = tracker.get_slot("product_name")
-        print(f"Slot 'product_name': {product_name}")  # Log per il debug
-
-        if not product_name:
-            dispatcher.utter_message(text="Non hai specificato un prodotto per verificare la disponibilità.")
-            print("Nessun prodotto specificato.")  # Log per il debug
-            return []
-
-        file_path = "C:/Users/MrWhi/OneDrive/Desktop/univpm/DataScience/Progetto_Datascience/chatbotGEGE/AC_Milan_Store_Products.csv"
-        
-        try:
-            print(f"Sto cercando di leggere il file: {file_path}")  # Log per il debug
-            df = pd.read_csv(file_path, sep=";", encoding="latin1")
-            print(f"File caricato con successo. Colonne disponibili: {df.columns}")  # Log per il debug
-
-            required_columns = ["Nome", "Disponibilità", "Prezzo"]
-            if not all(col in df.columns for col in required_columns):
-                dispatcher.utter_message(text=f"Il file CSV non contiene le colonne richieste: {', '.join(required_columns)}.")
-                print(f"Colonne mancanti: {', '.join(required_columns)}")  # Log per il debug
-                return []
-
-            df["Nome"] = df["Nome"].fillna("").str.strip().astype(str)
-            df["Disponibilità"] = df["Disponibilità"].fillna("").str.strip().astype(str)
-
-            # Ricerca del prodotto
-            product_info = df[df["Nome"].str.contains(rf'\b{product_name}\b', case=False, na=False)]
-
-            if not product_info.empty:
-                availability = product_info.iloc[0]["Disponibilità"]
-                if availability.lower() == "si":
-                    dispatcher.utter_message(text=f"Il prodotto '{product_info.iloc[0]['Nome']}' è disponibile.")
-                else:
-                    dispatcher.utter_message(text=f"Purtroppo, il prodotto '{product_info.iloc[0]['Nome']}' non è disponibile al momento.")
-            else:
-                dispatcher.utter_message(text=f"Non ho trovato informazioni sul prodotto '{product_name}'.")
-                print(f"Prodotto '{product_name}' non trovato.")  # Log per il debug
-
-        except FileNotFoundError:
-            dispatcher.utter_message(text="Il file dei prodotti non è stato trovato.")
-            print("File non trovato.")  # Log per il debug
-        except UnicodeDecodeError as e:
-            dispatcher.utter_message(text=f"Errore di decodifica nel file CSV: {str(e)}. Assicurati che il file abbia la codifica corretta.")
-            print(f"Errore di decodifica: {str(e)}")  # Log per il debug
-        except Exception as e:
-            dispatcher.utter_message(text=f"Si è verificato un errore nel verificare la disponibilità dei prodotti: {str(e)}")
-            print(f"Errore generico: {str(e)}")  # Log per il debug
-
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        msg = (
+            "🏬 *Milan Store Ufficiale* — ecco cosa puoi trovare:\n\n"
+            "• *Kit Da Gara* — maglie, pantaloncini e calzettoni ufficiali\n"
+            "• *Allenamento* — maglie, pantaloni, giacche e palloni\n\n"
+            "Puoi chiedermi disponibilità, prezzi e taglie di qualsiasi prodotto!"
+        )
+        dispatcher.utter_message(text=msg)
         return []
 
 
+# ──────────────────────────────────────────────
+# ACTION: Lista prodotti (tutti o per tipologia)
+# ──────────────────────────────────────────────
+class ActionListProducts(Action):
+    def name(self) -> Text:
+        return "action_list_products"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        tipologia = tracker.get_slot("tipologia")
+        sesso = tracker.get_slot("sesso")
+        df = DF.copy()
+
+        if tipologia:
+            df = df[df["Tipologia"].str.lower() == tipologia.lower()]
+        if sesso:
+            df = df[df["Sesso"].str.lower() == sesso.lower()]
+
+        if df.empty:
+            msg = "Non ho trovato prodotti"
+            if tipologia:
+                msg += f" di tipo '{tipologia}'"
+            if sesso:
+                msg += f" per '{sesso}'"
+            msg += "."
+            dispatcher.utter_message(text=msg)
+            return [SlotSet("tipologia", None), SlotSet("sesso", None)]
+
+        nomi = sorted(df["Nome"].dropna().unique().tolist())
+        intestazione = "Ecco i prodotti"
+        if tipologia:
+            intestazione += f" di tipo *{tipologia}*"
+        if sesso:
+            intestazione += f" per *{sesso}*"
+        intestazione += ":"
+        lista = "\n".join(f"• {n}" for n in nomi)
+        dispatcher.utter_message(text=f"{intestazione}\n\n{lista}")
+        return [SlotSet("tipologia", None), SlotSet("sesso", None)]
+
+
+# ──────────────────────────────────────────────
+# ACTION: Disponibilità
+# ──────────────────────────────────────────────
+class ActionCheckAvailability(Action):
+    def name(self) -> Text:
+        return "action_check_availability"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        raw = tracker.get_slot("product_name") or tracker.latest_message.get("text", "")
+        found = find_product(raw)
+        if not found:
+            dispatcher.utter_message(
+                text=f"Non ho trovato nessun prodotto chiamato '{raw}'. "
+                     f"Prova a scrivere il nome più precisamente."
+            )
+            return [SlotSet("product_name", None)]
+
+        rows = get_product_row(found)
+        sesso = tracker.get_slot("sesso")
+        if sesso:
+            rows = rows[rows["Sesso"].str.lower() == sesso.lower()]
+            if rows.empty:
+                dispatcher.utter_message(
+                    text=f"Non ho trovato '{found}' per '{sesso}'."
+                )
+                return [SlotSet("product_name", found), SlotSet("sesso", None)]
+
+        # P3: gestione disponibilità mista (alcune taglie/colori SI, altre NO)
+        valori_disp = rows["Disponibilità"].unique().tolist()
+        if "SI" in valori_disp and "NO" in valori_disp:
+            msg = f"⚠️ Il prodotto *'{found}'* è parzialmente disponibile (alcune varianti esaurite)."
+        elif "SI" in valori_disp:
+            msg = f"✅ Il prodotto *'{found}'* è disponibile!"
+        else:
+            msg = f"❌ Il prodotto *'{found}'* non è disponibile al momento."
+        if sesso:
+            msg += f" (per {sesso})"
+
+        dispatcher.utter_message(text=msg)
+        _dispatch_suggestion(dispatcher, "availability")
+        return [SlotSet("product_name", found), SlotSet("sesso", None)]
+
+
+# ──────────────────────────────────────────────
+# ACTION: Prezzo
+# ──────────────────────────────────────────────
 class ActionCheckPrice(Action):
     def name(self) -> Text:
         return "action_check_price"
 
-    async def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        product_name = tracker.get_slot("product_name")
-        print(f"Slot 'product_name': {product_name}")  # Log per il debug
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        raw = tracker.get_slot("product_name") or tracker.latest_message.get("text", "")
+        found = find_product(raw)
+        if not found:
+            dispatcher.utter_message(
+                text=f"Non ho trovato nessun prodotto chiamato '{raw}'."
+            )
+            return [SlotSet("product_name", None)]
 
-        if not product_name:
-            dispatcher.utter_message(text="Non hai specificato un prodotto per verificare il prezzo.")
-            print("Nessun prodotto specificato.")  # Log per il debug
-            return []
+        rows = get_product_row(found)
+        sesso = tracker.get_slot("sesso")
+        if sesso:
+            rows = rows[rows["Sesso"].str.lower() == sesso.lower()]
+            if rows.empty:
+                dispatcher.utter_message(
+                    text=f"Non ho informazioni sul prezzo di '{found}' per '{sesso}'."
+                )
+                return [SlotSet("product_name", found), SlotSet("sesso", None)]
 
-        file_path = "C:/Users/MrWhi/OneDrive/Desktop/univpm/DataScience/Progetto_Datascience/chatbotGEGE/AC_Milan_Store_Products.csv"
-        
-        try:
-            print(f"Sto cercando di leggere il file: {file_path}")  # Log per il debug
-            df = pd.read_csv(file_path, sep=";", encoding="latin1")
-            print(f"File caricato con successo. Colonne disponibili: {df.columns}")  # Log per il debug
+        # P4: prezzi multipli → mostra range invece di solo il primo
+        prezzi = rows["Prezzo"].dropna().unique().tolist()
+        if not prezzi:
+            msg = f"Il prezzo di *'{found}'* non è al momento disponibile."
+        elif len(prezzi) == 1:
+            msg = f"💰 Il prezzo di *'{found}'* è **{prezzi[0]:.2f}€**."
+        else:
+            p_min, p_max = min(prezzi), max(prezzi)
+            msg = f"💰 Il prezzo di *'{found}'* va da **{p_min:.2f}€** a **{p_max:.2f}€** (a seconda della variante)."
+        if sesso:
+            msg += f" (per {sesso})"
 
-            required_columns = ["Nome", "Disponibilità", "Prezzo"]
-            if not all(col in df.columns for col in required_columns):
-                dispatcher.utter_message(text=f"Il file CSV non contiene le colonne richieste: {', '.join(required_columns)}.")
-                print(f"Colonne mancanti: {', '.join(required_columns)}")  # Log per il debug
-                return []
-
-            df["Nome"] = df["Nome"].fillna("").str.strip().astype(str)
-            df["Prezzo"] = pd.to_numeric(df["Prezzo"], errors='coerce')
-
-            # Ricerca del prodotto
-            product_info = df[df["Nome"].str.contains(rf'\b{product_name}\b', case=False, na=False)]
-
-            if not product_info.empty:
-                price = product_info.iloc[0]["Prezzo"]
-                if pd.notna(price):  # Verifica se il prezzo è valido
-                    dispatcher.utter_message(text=f"Il prezzo del prodotto '{product_info.iloc[0]['Nome']}' è {price:.2f}€.")  # Formatta con due decimali
-                else:
-                    dispatcher.utter_message(text=f"Il prezzo del prodotto '{product_info.iloc[0]['Nome']}' non è valido o mancante.")
-            else:
-                dispatcher.utter_message(text=f"Non ho trovato informazioni sul prodotto '{product_name}'.")
-                print(f"Prodotto '{product_name}' non trovato.")  # Log per il debug
-
-        except FileNotFoundError:
-            dispatcher.utter_message(text="Il file dei prodotti non è stato trovato.")
-            print("File non trovato.")  # Log per il debug
-        except UnicodeDecodeError as e:
-            dispatcher.utter_message(text=f"Errore di decodifica nel file CSV: {str(e)}. Assicurati che il file abbia la codifica corretta.")
-            print(f"Errore di decodifica: {str(e)}")  # Log per il debug
-        except Exception as e:
-            dispatcher.utter_message(text=f"Si è verificato un errore nel verificare il prezzo del prodotto: {str(e)}")
-            print(f"Errore generico: {str(e)}")  # Log per il debug
-
-        return []
+        dispatcher.utter_message(text=msg)
+        _dispatch_suggestion(dispatcher, "price")
+        return [SlotSet("product_name", found), SlotSet("sesso", None)]
 
 
-class ActionCheckSizeAvailability(Action):
+# ──────────────────────────────────────────────
+# ACTION: Taglie
+# ──────────────────────────────────────────────
+class ActionCheckSizes(Action):
     def name(self) -> Text:
-        return "action_check_size_availability"
+        return "action_check_sizes"
 
-    async def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        product_name = tracker.get_slot("product_name")
-        size = tracker.get_slot("size")  # Slot opzionale
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        raw = tracker.get_slot("product_name") or tracker.latest_message.get("text", "")
+        found = find_product(raw)
+        if not found:
+            dispatcher.utter_message(
+                text=f"Non ho trovato nessun prodotto chiamato '{raw}'."
+            )
+            return [SlotSet("product_name", None)]
 
-        if not product_name:
-            dispatcher.utter_message(text="Per favore, specifica un prodotto per verificare la disponibilità delle taglie.")
-            return []
+        rows = get_product_row(found)
+        sesso = tracker.get_slot("sesso")
+        if sesso:
+            rows = rows[rows["Sesso"].str.lower() == sesso.lower()]
+            if rows.empty:
+                dispatcher.utter_message(
+                    text=f"Non ho taglie per '{found}' per '{sesso}'."
+                )
+                return [SlotSet("product_name", found), SlotSet("sesso", None)]
 
-        file_path = "C:/Users/MrWhi/OneDrive/Desktop/univpm/DataScience/Progetto_Datascience/chatbotGEGE/AC_Milan_Store_Products.csv"
+        taglie = sorted(rows["Taglie"].dropna().unique().tolist())
+        taglie = [t for t in taglie if t]
+        if taglie:
+            lista = ", ".join(taglie)
+            msg = f"📏 Le taglie di *'{found}'* sono: **{lista}**."
+            if sesso:
+                msg += f" (per {sesso})"
+        else:
+            msg = f"Non ho informazioni sulle taglie di *'{found}'*."
 
-        try:
-            # Caricamento del file CSV
-            df = pd.read_csv(file_path, sep=";", encoding="latin1")
-            df["Nome"] = df["Nome"].fillna("").str.strip().str.lower()
-            df["Taglie"] = df["Taglie"].fillna("").str.strip()
-            df["Taglie"] = df["Taglie"].apply(lambda x: [s.strip().upper() for s in x.split(",") if s.strip()])
+        dispatcher.utter_message(text=msg)
+        _dispatch_suggestion(dispatcher, "sizes")
+        return [SlotSet("product_name", found), SlotSet("sesso", None)]
 
-            # Validazione delle taglie
-            all_sizes = set(tag for tags in df["Taglie"] for tag in tags)
-            if size and size not in all_sizes:
-                dispatcher.utter_message(text=f"La taglia {size} non esiste per nessun prodotto nel nostro catalogo.")
-                return []
 
-            # Raggruppamento per prodotto
-            df = df.groupby("Nome", as_index=False).agg({
-                "Taglie": lambda x: sorted(set(tag for sublist in x for tag in sublist))
-            })
+# ──────────────────────────────────────────────
+# ACTION: Colore
+# ──────────────────────────────────────────────
+class ActionCheckColor(Action):
+    def name(self) -> Text:
+        return "action_check_color"
 
-            # Normalizzazione dell'input
-            product_name = product_name.lower().strip()
-            size = size.strip().upper() if size else None
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        raw = tracker.get_slot("product_name") or tracker.latest_message.get("text", "")
+        found = find_product(raw)
+        if not found:
+            dispatcher.utter_message(
+                text=f"Non ho trovato nessun prodotto chiamato '{raw}'."
+            )
+            return [SlotSet("product_name", None)]
 
-            # Filtraggio del prodotto specifico
-            product_info = df[df["Nome"].str.contains(rf'\b{re.escape(product_name)}\b', case=False, na=False)]
+        rows = get_product_row(found)
+        # P8: filtra per sesso se disponibile
+        sesso = tracker.get_slot("sesso")
+        if sesso:
+            filtered = rows[rows["Sesso"].str.lower() == sesso.lower()]
+            if not filtered.empty:
+                rows = filtered
 
-            if product_info.empty:
-                dispatcher.utter_message(text=f"Non ho trovato informazioni sul prodotto '{product_name}'.")
-                return []
+        colori = rows["Colore"].dropna().unique().tolist()
+        colori = [c for c in colori if c and c != "-"]
+        if colori:
+            if len(colori) == 1:
+                msg = f"🎨 Il colore di *'{found}'* è: **{colori[0]}**."
+            else:
+                msg = f"🎨 I colori di *'{found}'* sono: **{', '.join(sorted(colori))}**."
+        else:
+            msg = f"Non ho informazioni sul colore di *'{found}'*."
+        if sesso:
+            msg += f" (per {sesso})"
 
-            available_sizes = product_info.iloc[0]["Taglie"]
+        dispatcher.utter_message(text=msg)
+        _dispatch_suggestion(dispatcher, "color")
+        return [SlotSet("product_name", found), SlotSet("sesso", None)]
 
-            if size:  # Se l'utente richiede una taglia specifica
-                if size in available_sizes:
-                    dispatcher.utter_message(text=f"La taglia {size} per il prodotto '{product_name}' è disponibile.")
-                else:
-                    dispatcher.utter_message(text=f"Purtroppo, la taglia {size} per il prodotto '{product_name}' non è disponibile.")
-            else:  # Se l'utente richiede tutte le taglie disponibili
-                dispatcher.utter_message(text=f"Le taglie disponibili per '{product_name}' sono: {', '.join(available_sizes)}.")
 
-        except FileNotFoundError:
-            dispatcher.utter_message(text="Il file dei prodotti non è stato trovato.")
-        except Exception as e:
-            dispatcher.utter_message(text=f"Si è verificato un errore nel verificare le taglie: {str(e)}")
+# ──────────────────────────────────────────────
+# ACTION: Prodotti per categoria o sesso
+# ──────────────────────────────────────────────
+class ActionFilterProducts(Action):
+    def name(self) -> Text:
+        return "action_filter_products"
 
-        return []
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker, domain: Dict) -> List:
+        sesso     = tracker.get_slot("sesso")
+        categoria = tracker.get_slot("categoria")
+        df = DF.copy()
 
+        if sesso:
+            df = df[df["Sesso"].str.lower() == sesso.lower()]
+        if categoria:
+            df = df[df["Categoria"].str.lower() == categoria.lower()]
+
+        if df.empty:
+            msg = "Non ho trovato prodotti con i filtri selezionati."
+        else:
+            nomi = sorted(df["Nome"].dropna().unique().tolist())
+            filtro = ""
+            if sesso:
+                filtro += f" per *{sesso}*"
+            if categoria:
+                filtro += f" categoria *{categoria}*"
+            lista = "\n".join(f"• {n}" for n in nomi)
+            msg = f"Prodotti{filtro}:\n\n{lista}"
+
+        dispatcher.utter_message(text=msg)
+        return [SlotSet("sesso", None), SlotSet("categoria", None)]
