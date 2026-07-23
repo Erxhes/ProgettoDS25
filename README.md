@@ -8,9 +8,9 @@ Questo repository raccoglie l'insieme dei progetti realizzati nell'ambito del pe
 
 1. [⚽ Milan Store Chatbot (Conversational AI)](#1--milan-store-chatbot-conversational-ai)
 2. [🎬 Sentiment Analysis su Recensioni Cinematografiche con BERT](#2--sentiment-analysis-su-recensioni-cinematografiche-con-bert)
-3. [🕸️ Social Network Analysis (SNA) su Grafo TV Show](#3️-social-network-analysis-sna-su-grafo-tv-show)
+3. [🕸️ Social Network Analysis (SNA) su TV Show](#3️-social-network-analysis-sna-su-grafo-tv-show)
 4. [📰 NLP & Text Mining su BBC News Archive](#4--nlp--text-mining-su-bbc-news-archive)
-5. [📈 Analisi delle Serie Temporali (Precipitazioni di Londra)](#5--analisi-delle-serie-temporali-precipitazioni-di-londra)
+5. [📈 Analisi delle Serie Temporali](#5--analisi-delle-serie-temporali-precipitazioni-di-londra)
 
 ---
 
