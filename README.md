@@ -1,6 +1,6 @@
-# 📊 Progetti Data Science (2026)
+# 📊 Progetti di Data Science, Natural Language Processing, Machine Learning e Network Analysis (2026)
 
-Questo repository raccoglie l'insieme dei progetti realizzati nell'ambito del percorso di **Data Science**, coprendo diverse aree tematiche dell'Intelligenza Artificiale: dalla **Conversational AI** con Rasa e Telegram, al **Deep Learning** per la Sentiment Analysis con BERT, all'**Analisi delle Reti** (SNA), al **Natural Language Processing avanzato** su articoli di giornale, e alle **Serie Temporali** meteorologiche con modelli SARIMAX.
+Questo repository raccoglie l'insieme completo dei progetti realizzati nell'ambito del percorso di **Data Science**, coprendo a 360 gradi le principali metodologie dell'Intelligenza Artificiale e dell'Analisi dei Dati: dalla **Conversational AI** con Rasa e Telegram, al **Deep Learning** con BERT, alla **Network Science** (SNA), al **Natural Language Processing avanzato**, fino all'intero ciclo di analisi del dataset meteorologico (*Analisi Descrittiva*, *Classificazione Binaria*, *Clustering/Segmentazione* e *Serie Temporali SARIMAX*).
 
 ---
 
@@ -10,7 +10,10 @@ Questo repository raccoglie l'insieme dei progetti realizzati nell'ambito del pe
 2. [🎬 Sentiment Analysis su Recensioni Cinematografiche con BERT](#2--sentiment-analysis-su-recensioni-cinematografiche-con-bert)
 3. [🕸️ Social Network Analysis (SNA) su TV Show](#3️-social-network-analysis-sna-su-grafo-tv-show)
 4. [📰 NLP & Text Mining su BBC News Archive](#4--nlp--text-mining-su-bbc-news-archive)
-5. [📈 Analisi delle Serie Temporali](#5--analisi-delle-serie-temporali-precipitazioni-di-londra)
+5. [📊 Analisi Descrittiva e Climatologica di Londra (AD26)](#5--analisi-descrittiva-e-climatologica-di-londra-ad26)
+6. [🎯 Classificazione Binaria delle Precipitazioni (Classificazione26)](#6--classificazione-binaria-delle-precipitazioni-classificazione26)
+7. [🧩 Clustering e Profilazione dei Regimi Meteorologici (Clustering26)](#7--clustering-e-profilazione-dei-regimi-meteorologici-clustering26)
+8. [📈 Analisi delle Serie Temporali delle Precipitazioni (SerieTemporali)](#8--analisi-delle-serie-temporali-delle-precipitazioni-serietemporali)
 
 ---
 
@@ -21,7 +24,7 @@ Sviluppo di un assistente virtuale intelligente in grado di interagire con gli u
 
 ### 🛠️ Tecnologie e Framework Usati
 - **Rasa Framework (v3.x)**: NLU (Natural Language Understanding) e Gestione delle Politiche di Dialogo (DIETClassifier, TEDPolicy, RulePolicy).
-- **Python 3.x & Pandas**: Caricamento, pulizia e interrozione dinamica del dataset prodotti (`AC_Milan_Store_Products.csv`).
+- **Python 3.x & Pandas**: Caricamento, pulizia e interrogazione dinamica del dataset prodotti (`AC_Milan_Store_Products.csv`).
 - **TheFuzz (Fuzzy String Matching)**: Riconoscimento tollerante agli errori di battitura dei nomi dei prodotti.
 - **Flask**: Webhook server per l'integrazione con Telegram.
 - **Telegram Bot API & Ngrok**: Esposizione dell'endpoint e interfaccia utente di messaggistica reale.
@@ -92,23 +95,78 @@ Progetto completo di **Natural Language Processing** e **Text Mining** eseguito 
 
 ---
 
-## 5. 📈 Analisi delle Serie Temporali (Precipitazioni di Londra)
+## 5. 📊 Analisi Descrittiva e Climatologica di Londra (AD26)
 
 ### 📌 Descrizione
-Modellazione statistica e predittiva delle serie storiche meteorologiche della città di Londra dal 1979 al 2020 a partire dal dataset `london_weather.csv`.
+Studio esplorativo, statistico e climatologico approfondito dei dati meteorologici della città di Londra dal 1979 al 2020 a partire dal dataset `london_weather.csv`.
 
 ### 🛠️ Tecnologie e Framework Usati
-- **Statsmodels**: Test di Stazionarietà Augmented Dickey-Fuller (ADF), funzioni ACF/PACF, modelli **ARIMA** e **SARIMAX**.
-- **Pandas & NumPy**: Resampling mensile con somme/medie e interpolazione lineare delle variabili continue.
-- **Scikit-Learn**: Metriche di valutazione ed errore (RMSE, MAE, MAPE, ME, R).
+- **Pandas & NumPy**: Manipolazione dati ed imputazione differenziata.
+- **Matplotlib & Seaborn**: Istogrammi con stima KDE, boxplot temporali/stagionali e visualizzazioni pluviometriche.
+- **Plotly Express**: Line-chart e Scatterplot 3D interattivi (Temperatura vs Precipitazioni vs Radiazione Solare).
+- **SciPy (`scipy.stats.linregress`)**: Calcolo delle regressioni lineari e verifica della significatività statistica ($p$-value).
 
-### 💡 Architettura del Flusso di Lavoro
+### 💡 Metodologia e Risultati Scientifici
+- **Imputazione Differenziata**: Interpolazione lineare per le variabili continue; riempimento con 0 (*zero-filling*) per le precipitazioni e la neve per evitare l'introduzione artificiale di "piogge fantasma".
+- **Analisi delle Anomalie (Standard WMO 1981-2010)**: Calcolo delle anomalie termiche annuali rispetto al trentennio di riferimento climatologico World Meteorological Organization (WMO).
+- **Trend di Riscaldamento Globale**: Individuazione di un trend di riscaldamento statisticamente significativo ($p < 0.001$) con un tasso di crescita di $+0.038\ ^\circ\text{C/anno}$ a Londra, confermato anche dalle medie mobili a 5 anni.
+- **Classificazione Pluviometrica**: Categorizzazione dell'intensità di pioggia in 4 classi (*Asciutto*, *Pioggia Leggera*, *Moderata*, *Forte*).
+
+---
+
+## 6. 🎯 Classificazione Binaria delle Precipitazioni (Classificazione26)
+
+### 📌 Descrizione
+Sviluppo di modelli di Machine Learning per la predizione binaria del verificarsi di eventi piovosi (*Pioggia / No Pioggia*) a Londra, integrando strategie rigorose contro il *Data Leakage*.
+
+### 🛠️ Tecnologie e Framework Usati
+- **Scikit-Learn**: Scaler, Pipeline, TimeSeriesSplit, Voting Classifier e metriche di valutazione.
+- **XGBoost & Random Forest**: Modelli ad albero e gradient boosting ad alte prestazioni.
+- **Yellowbrick**: Diagnostic tools (ROC Curve, Precision-Recall Curve, Learning Curves).
+
+### 💡 Architettura Anti-Leakage e Workflow
+1. **Feature Engineering**: Creazione di *Lag Features* al giorno precedente (`precip_lag1`, `sunshine_lag1`, `cloud_lag1`), media mobile a 3 giorni (`precip_ma3`) e One-Hot Encoding per i 12 mesi.
+2. **Target Binario Rigoroso**: La soglia di precipitazione ($60^\circ$ percentile) viene determinata **esclusivamente sul Training Set ($< 2019$)** per prevenire contaminazioni informative sul Test set.
+3. **Selezione Anti-Multicollinearità**: Eliminazione delle variabili termiche fortemente correlate per garantire la stabilità matematica dei modelli.
+4. **Split Temporale & Cross-Validation**: Divisione rigida in Train ($1979-2018$) e Test ($2019-2020$) con `TimeSeriesSplit` a 5 fold applicato all'interno delle `Pipeline`.
+5. **Voting Classifier & Threshold Tuning**: Soft Voting Ensemble tra Random Forest e XGBoost con ottimizzazione della soglia di decisione lungo la curva Precision-Recall per la massimizzazione dell'F1-Score.
+
+---
+
+## 7. 🧩 Clustering e Profilazione dei Regimi Meteorologici (Clustering26)
+
+### 📌 Descrizione
+Segmentazione non supervisionata e profilazione dei pattern climatici di Londra, confrontando algoritmi di partizionamento, gerarchici e basati sulla densità.
+
+### 🛠️ Tecnologie e Framework Usati
+- **Scikit-Learn**: `KMeans`, `AgglomerativeClustering`, `DBSCAN`, `StandardScaler`, `PCA`.
+- **Yellowbrick**: `KElbowVisualizer` e `SilhouetteVisualizer`.
+
+### 💡 Metodologia e Risultati di Clustering
+- **Scelta del $K$ Ottimale**: Metodo Elbow (WCSS) e Silhouette Score ($K=4$).
+- **Regimi Termici Identificati**: *Molto Freddo*, *Freddo Transizione*, *Fresco/Mite*, *Caldo*.
+- **Regimi Pluviometrico-Solari**: *Secco/Soleggiato*, *Asciutto/Nuvoloso*, *Piovoso/Nuvoloso*, *Molto Piovoso*.
+- **Riduzione Dimensionale PCA**: Proiezione dello spazio multidimensionale in 2 componenti principali ($PCA1$, $PCA2$) per la visualizzazione dei cluster.
+- **DBSCAN & Curva $K$-distance**: Scelta oggettiva del parametro $\epsilon=0.5$ (tramite il "ginocchio" del $5^\circ$ vicino) ed analisi di sensibilità su 6 valori di $\epsilon$ per la rilevazione di outliers e giornate anomale.
+
+---
+
+## 8. 📈 Analisi delle Serie Temporali delle Precipitazioni (SerieTemporali)
+
+### 📌 Descrizione
+Modellazione statistica e predittiva delle serie storiche meteorologiche della città di Londra dal 1979 al 2020 basata su modelli autoregressivi e stagionali.
+
+### 🛠️ Tecnologie e Framework Usati
+- **Statsmodels**: Test ADF (Augmented Dickey-Fuller), autocorrelazioni ACF/PACF, modelli **ARIMA** e **SARIMAX**.
+- **Pandas & NumPy**: Resampling mensile temporale e vincolo di consistenza fisica (`clip(lower=0)`).
+- **Scikit-Learn**: Metriche di errore (RMSE, MAE, MAPE, ME, R).
+
+### 💡 Pipeline di Modellazione
 1. **Resampling Mensile**: Aggregazione dei dati giornalieri a livello mensile per stabilizzare la varianza ed eliminare il rumore ad alta frequenza.
-2. **Test ADF & Autocorrelazioni**: Verifica della stazionarietà della serie e analisi dei grafici ACF/PACF per determinare i parametri $(p, d, q)$.
-3. **Modello Baseline ARIMA(1,0,2)**: Prima stima lineare non stagionale.
-4. **Modello Avanzato SARIMAX(1,0,1)x(0,1,1)₁₂ con Esogene**: Integrazione della componente stagionale annuale e delle variabili meteo esogene (*cloud cover*, *global radiation*, *mean temperature*).
-5. **Consistenza Fisica**: Applicazione del clipping inferiore a 0 per garantire la correttezza fisica delle stime di precipitazione.
-6. **Analisi dei Residui**: Verifica della distribuzione dei residui (KDE) e assenza di autocorrelazione rimanente.
+2. **Stazionarietà e ACF/PACF**: Rifiuto dell'ipotesi nulla di non-stazionarietà (Test ADF) e analisi dei ritardi stagionali a 12 mesi.
+3. **Baseline ARIMA(1,0,2)**: Primo modello lineare non stagionale.
+4. **SARIMAX(1,0,1)x(0,1,1)₁₂ Avanzato con Esogene**: Modello completo con stagionalità annuale ed esogene meteorologiche (*cloud cover*, *global radiation*, *mean temperature*).
+5. **Analisi dei Residui**: Verifica della distribuzione gaussiana e casuale del rumore residuo (KDE).
 
 ---
 
@@ -116,15 +174,18 @@ Modellazione statistica e predittiva delle serie storiche meteorologiche della c
 
 ```
 .
-├── milan_bot_fresh/      # Codice, configurazioni Rasa, NLU, custom actions e Telegram webhook
-├── bert26/               # Notebooks Colab/locali, script di creazione e dataset recensioni film
+├── milan_bot_fresh/      # Codice Rasa, NLU, custom actions, Telegram webhook e dataset prodotti
+├── bert26/               # Notebook Colab/locali BERT, script di creazione e dataset recensioni
 ├── sna/                  # Script Python, notebook ed esecuzione analisi del grafo TV Show
 ├── NLP/                  # Notebooks, immagini, script di analisi e sorgenti LaTeX della tesina NLP
-├── serieTemporali/       # Notebook di time series analysis, dataset London Weather e relazioni tecniche
+├── AD26/                 # Notebook di Analisi Descrittiva, grafici climatologici e relazione descrittiva
+├── classificazione26/    # Notebook di Classificazione Binaria, pipeline anti-leakage, immagini e relazioni
+├── clustering26/         # Notebook di Clustering (K-Means, Hierarchical, DBSCAN), PCA e relazioni
+├── serieTemporali/       # Notebook di Time Series Analysis (SARIMAX), dataset ed esecuzione
 ├── Python26.pdf          # Documentazione e materiale didattico/progetto Python
-└── README.md             # Documento di sintesi del repository
+└── README.md             # Documento di sintesi generale del repository
 ```
 
 ---
 
-## ✒️ Erxhes Dedja
+## ✒️Erxhes Dedja
