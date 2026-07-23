@@ -1,4 +1,4 @@
-# 📊 Progetti di Data Science, Natural Language Processing e Network Analysis (2026)
+# 📊 Progetti Data Science (2026)
 
 Questo repository raccoglie l'insieme dei progetti realizzati nell'ambito del percorso di **Data Science**, coprendo diverse aree tematiche dell'Intelligenza Artificiale: dalla **Conversational AI** con Rasa e Telegram, al **Deep Learning** per la Sentiment Analysis con BERT, all'**Analisi delle Reti** (SNA), al **Natural Language Processing avanzato** su articoli di giornale, e alle **Serie Temporali** meteorologiche con modelli SARIMAX.
 
